@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+python-multipart
+opencv-python-headless
+# picamera2 is usually pre-installed on Raspberry Pi OS
+# if running on Pi, it should already be there.

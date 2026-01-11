@@ -1,52 +1,69 @@
 import io
 import time
 import threading
+import os
 from fastapi import FastAPI, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import StreamingResponse
-import picamera2
+
+# Try to import picamera2, fallback to OpenCV if not on a Pi
+try:
+    import picamera2
+    HAS_PICAMERA = True
+except ImportError:
+    import cv2
+    HAS_PICAMERA = False
 
 app = FastAPI()
 
 class CameraStreamer:
     def __init__(self):
-        self.picam2 = picamera2.Picamera2()
-        
-        # Configure for high quality
-        # 1280x720 is a good "High Quality" balance for web streaming
-        self.config = self.picam2.create_video_configuration(
-            main={"size": (1280, 720), "format": "YUV420"}
-        )
-        self.picam2.configure(self.config)
-        
-        # Set controls for 60fps
-        # 16666us = 1/60s
-        self.picam2.set_controls({"FrameDurationLimits": (16666, 16666)})
-        
+        self.stopped = False
         self.latest_frame = None
         self.fps_actual = 0
         self.lock = threading.Lock()
         self._frame_count = 0
         self._last_time = time.time()
-        self.stopped = False
+        
+        if HAS_PICAMERA:
+            self.picam2 = picamera2.Picamera2()
+            self.config = self.picam2.create_video_configuration(
+                main={"size": (1280, 720), "format": "YUV420"}
+            )
+            self.picam2.configure(self.config)
+            self.picam2.set_controls({"FrameDurationLimits": (16666, 16666)})
+        else:
+            # Laptop webcam fallback
+            self.cap = cv2.VideoCapture(0)
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
     def start(self):
-        self.picam2.start()
-        # We'll run a background thread that constantly captures JPEGs
+        if HAS_PICAMERA:
+            self.picam2.start()
+        
         self.thread = threading.Thread(target=self._capture_loop, daemon=True)
         self.thread.start()
-        print("Camera capture loop started")
+        print(f"Camera capture loop started (Using {'PiCamera2' if HAS_PICAMERA else 'OpenCV'})")
 
     def _capture_loop(self):
         while not self.stopped:
             try:
-                # This uses the hardware encoder to generate a JPEG
-                # It's very fast and low CPU
-                buf = io.BytesIO()
-                self.picam2.capture_file(buf, format="jpeg")
+                if HAS_PICAMERA:
+                    buf = io.BytesIO()
+                    self.picam2.capture_file(buf, format="jpeg")
+                    frame_data = buf.getvalue()
+                else:
+                    success, frame = self.cap.read()
+                    if not success:
+                        time.sleep(0.1)
+                        continue
+                    # Encode to JPEG for the stream
+                    _, buffer = cv2.imencode('.jpg', frame)
+                    frame_data = buffer.tobytes()
                 
                 with self.lock:
-                    self.latest_frame = buf.getvalue()
+                    self.latest_frame = frame_data
                     self._frame_count += 1
                     
                 now = time.time()
@@ -55,10 +72,8 @@ class CameraStreamer:
                     self._frame_count = 0
                     self._last_time = now
                 
-                # Tiny sleep to allow context switching
                 time.sleep(0.001)
             except Exception as e:
-                # print(f"Capture error: {e}")
                 time.sleep(0.1)
 
     def get_frame(self):
@@ -67,8 +82,11 @@ class CameraStreamer:
 
     def stop(self):
         self.stopped = True
-        self.picam2.stop()
-        self.picam2.close()
+        if HAS_PICAMERA:
+            self.picam2.stop()
+            self.picam2.close()
+        else:
+            self.cap.release()
 
 streamer = CameraStreamer()
 
@@ -86,8 +104,7 @@ def gen_frames():
         if frame:
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        # This controls the transmission rate to the browser
-        time.sleep(1/100) # 100fps max relay
+        time.sleep(1/100)
 
 @app.get("/video_feed")
 async def video_feed():
@@ -98,14 +115,14 @@ async def get_stats():
     return {
         "fps": round(streamer.fps_actual, 2),
         "resolution": "1280x720",
-        "camera": "IMX708"
+        "camera": "PiCamera" if HAS_PICAMERA else "Webcam"
     }
 
-# Absolute path for clarity
-STATIC_DIR = "/home/loud/Desktop/Field/camera_dashboard/static"
+# Use relative path for portability
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
-    # Use log_level="warning" to keep the console clean
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="warning")
