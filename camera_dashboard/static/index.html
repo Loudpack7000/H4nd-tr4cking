@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vision Dashboard | RPi5 Camera</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <div class="logo-container">
+            <div class="logo-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                </svg>
+            </div>
+            <h1>Vision Core <span style="color: var(--text-secondary); font-weight: 400;">v1.0</span></h1>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <section class="video-section">
+            <div class="status-badge">
+                <div class="status-dot"></div>
+                LIVE STREAM
+            </div>
+            <img id="camera-feed" src="/video_feed" alt="Camera Feed">
+        </section>
+
+        <aside class="sidebar">
+            <div class="stats-card">
+                <span class="stats-label">Current Performance</span>
+                <div class="stats-value" id="fps-val">--<span class="stats-unit">FPS</span></div>
+            </div>
+
+            <div class="stats-card">
+                <span class="stats-label">Stream Quality</span>
+                <div class="stats-value" id="res-val">--</div>
+            </div>
+
+            <div class="controls">
+                <span class="stats-label">Vision Controls</span>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Brightness</span>
+                        <span id="brightness-val">100%</span>
+                    </div>
+                    <input type="range" min="0" max="200" value="100">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Contrast</span>
+                        <span id="contrast-val">100%</span>
+                    </div>
+                    <input type="range" min="0" max="200" value="100">
+                </div>
+
+                <button id="refresh-btn">Restart Stream</button>
+                <button onclick="window.location.href='/hand_tracking.html'"
+                    style="background: var(--accent-gradient); margin-top: 10px; border: 1px solid rgba(255,255,255,0.2);">Launch
+                    AI Hand DJ</button>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        async function updateStats() {
+            try {
+                const response = await fetch('/stats');
+                const data = await response.json();
+                document.getElementById('fps-val').innerHTML = `${data.fps}<span class="stats-unit">FPS</span>`;
+                document.getElementById('res-val').innerText = data.resolution;
+            } catch (e) {
+                console.error("Stats update failed", e);
+            }
+        }
+
+        setInterval(updateStats, 1000);
+
+        document.getElementById('refresh-btn').addEventListener('click', () => {
+            const img = document.getElementById('camera-feed');
+            img.src = '/video_feed?t=' + new Date().getTime();
+        });
+
+        // Simple visual feedback for sliders
+        document.querySelectorAll('input[type="range"]').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const span = e.target.parentElement.querySelector('span:last-child');
+                if (span) span.innerText = e.target.value + '%';
+            });
+        });
+    </script>
+</body>
+
+</html>

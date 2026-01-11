@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Vision DJ | RPi5</title>
+    <link rel="stylesheet" href="index.css">
+    <!-- MediaPipe Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <style>
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #output_canvas {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+        }
+
+        #camera-feed {
+            /* We'll use a hidden video element to feed MediaPipe */
+            display: none;
+        }
+
+        #display-feed {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 12px;
+        }
+
+        .dj-panel {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 12px;
+            padding: 10px;
+            margin-top: 10px;
+            display: flex;
+            gap: 20px;
+            justify-content: space-around;
+        }
+
+        .v-bar {
+            width: 40px;
+            height: 100px;
+            background: #222;
+            position: relative;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .v-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: var(--accent-gradient);
+            height: 0%;
+            transition: height 0.1s ease;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo-container">
+            <div class="logo-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8a3 3 0 0 0-3-3H5a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8Z" />
+                    <path d="M10 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+                    <path d="m22 7-4 4v2l4 4V7Z" />
+                </svg>
+            </div>
+            <h1>Hand Vision <span style="color: var(--text-secondary); font-weight: 400;">DJ Ready</span></h1>
+        </div>
+        <a href="/" style="color: var(--text-secondary); text-decoration: none; margin-left: auto;">← Back</a>
+    </header>
+
+    <main class="dashboard-container">
+        <section class="video-section">
+            <div class="status-badge">
+                <div class="status-dot"></div>
+                AI TRACKING ACTIVE
+            </div>
+            <div class="canvas-container" id="container">
+                <!-- We use the MJPEG stream as the source -->
+                <img id="source-feed" src="/video_feed" style="display:none;" crossorigin="anonymous">
+                <canvas id="display-canvas"></canvas>
+                <canvas id="output_canvas"></canvas>
+            </div>
+        </section>
+
+        <aside class="sidebar">
+            <div class="stats-card">
+                <span class="stats-label">Performance Monitor</span>
+                <div class="dj-panel" style="flex-direction: column; gap: 10px;">
+                    <div class="control-item">
+                        <span class="stats-label" style="font-size: 0.6rem;">Master Frequency (Right Pinch)</span>
+                        <div class="v-bar" style="width: 100%; height: 20px;">
+                            <div id="master-freq-fill" class="v-fill"
+                                style="background: var(--accent-gradient); width: 0%; height: 100%; transition: width 0.1s ease;">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; justify-content: center;">
+                        <div class="v-bar" style="width: 10px; height: 40px;">
+                            <div id="f0-fill" class="v-fill" style="background: #ff4d4d"></div>
+                        </div>
+                        <div class="v-bar" style="width: 10px; height: 40px;">
+                            <div id="f1-fill" class="v-fill" style="background: #ffeb3b"></div>
+                        </div>
+                        <div class="v-bar" style="width: 10px; height: 40px;">
+                            <div id="f2-fill" class="v-fill" style="background: #00e676"></div>
+                        </div>
+                        <div class="v-bar" style="width: 10px; height: 40px;">
+                            <div id="f3-fill" class="v-fill" style="background: #2196f3"></div>
+                        </div>
+                        <div class="v-bar" style="width: 10px; height: 40px;">
+                            <div id="f4-fill" class="v-fill" style="background: #e91e63"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <span class="stats-label">Acoustic State</span>
+                <div class="stats-value" id="hand-state" style="font-size: 1rem;">Not Detected</div>
+            </div>
+
+            <div class="controls">
+                <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">
+                    🖐 <b>Left Hand:</b> Fingers control 5 synth voices. Height = Volume.<br><br>
+                    🤏 <b>Right Hand Pinch:</b> Thumb + Index distance controls <b>Global Frequency</b>.
+                </p>
+                <button id="start-btn">Launch Master Synth</button>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        const sourceImg = document.getElementById('source-feed');
+        const displayCanvas = document.getElementById('display-canvas');
+        const outputCanvas = document.getElementById('output_canvas');
+        const dctx = displayCanvas.getContext('2d');
+        const octx = outputCanvas.getContext('2d');
+        const handState = document.getElementById('hand-state');
+
+        const fingerFills = [
+            document.getElementById('f0-fill'),
+            document.getElementById('f1-fill'),
+            document.getElementById('f2-fill'),
+            document.getElementById('f3-fill'),
+            document.getElementById('f4-fill')
+        ];
+        const masterFreqFill = document.getElementById('master-freq-fill');
+
+        let hands;
+        let audioCtx;
+        let voices = [];
+        let masterGain;
+        let reverbNode;
+        let globalFreqMultiplier = 1.0;
+        let audioStarted = false;
+
+        // Pentatonic scale ratios (always sounds musical)
+        const pentatonic = [1, 1.125, 1.25, 1.5, 1.667]; // C, D, E, G, A intervals
+
+        async function initAudio() {
+            if (audioStarted) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+                // Create reverb (convolver) for spacious sound
+                reverbNode = audioCtx.createConvolver();
+                const reverbTime = 2.5;
+                const sampleRate = audioCtx.sampleRate;
+                const length = sampleRate * reverbTime;
+                const impulse = audioCtx.createBuffer(2, length, sampleRate);
+                for (let ch = 0; ch < 2; ch++) {
+                    const data = impulse.getChannelData(ch);
+                    for (let i = 0; i < length; i++) {
+                        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2);
+                    }
+                }
+                reverbNode.buffer = impulse;
+
+                // Dry/Wet mixer
+                const dryGain = audioCtx.createGain();
+                const wetGain = audioCtx.createGain();
+                dryGain.gain.value = 0.6;
+                wetGain.gain.value = 0.4;
+
+                masterGain = audioCtx.createGain();
+                masterGain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+
+                // Create 5 rich voices (detuned pairs for "supersaw" feel)
+                const baseFreq = 110; // A2
+                for (let i = 0; i < 5; i++) {
+                    const freq = baseFreq * pentatonic[i];
+                    const voiceGain = audioCtx.createGain();
+                    voiceGain.gain.setValueAtTime(0, audioCtx.currentTime);
+
+                    // Create 3 detuned oscillators per voice for richness
+                    const oscs = [];
+                    [-7, 0, 7].forEach(detune => {
+                        const osc = audioCtx.createOscillator();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                        osc.detune.setValueAtTime(detune, audioCtx.currentTime);
+                        osc.connect(voiceGain);
+                        osc.start();
+                        oscs.push(osc);
+                    });
+
+                    voiceGain.connect(dryGain);
+                    voiceGain.connect(reverbNode);
+                    voices.push({ oscs, gain: voiceGain, baseFreq: freq });
+                }
+
+                dryGain.connect(masterGain);
+                reverbNode.connect(wetGain);
+                wetGain.connect(masterGain);
+                masterGain.connect(audioCtx.destination);
+
+                audioStarted = true;
+                console.log("Ambient Synth Engine Live");
+            } catch (e) { console.error("Audio init failed", e); }
+        }
+
+        async function initMediaPipe() {
+            initAudio();
+            hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
+            hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+            hands.onResults(onResults);
+            document.getElementById('start-btn').innerText = "SYSTEM ACTIVE";
+            document.getElementById('start-btn').disabled = true;
+            processFrame();
+        }
+
+        // Detect if hand is open (fingers extended) or closed (fist)
+        function isHandOpen(landmarks) {
+            // Compare fingertip Y positions to MCP (knuckle) Y positions
+            // If tips are above knuckles, fingers are extended
+            const tipIds = [8, 12, 16, 20]; // Index, Middle, Ring, Pinky tips
+            const mcpIds = [5, 9, 13, 17];  // Corresponding knuckles
+            let extended = 0;
+            tipIds.forEach((tipId, i) => {
+                if (landmarks[tipId].y < landmarks[mcpIds[i]].y) extended++;
+            });
+            return extended >= 3; // At least 3 fingers extended = open hand
+        }
+
+        function onResults(results) {
+            if (sourceImg.naturalWidth) {
+                displayCanvas.width = sourceImg.naturalWidth;
+                displayCanvas.height = sourceImg.naturalHeight;
+                outputCanvas.width = sourceImg.naturalWidth;
+                outputCanvas.height = sourceImg.naturalHeight;
+                dctx.drawImage(results.image, 0, 0, displayCanvas.width, displayCanvas.height);
+            }
+
+            octx.save();
+            octx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                results.multiHandLandmarks.forEach((landmarks, handIndex) => {
+                    const label = results.multiHandedness[handIndex].label;
+
+                    if (label === 'Left') {
+                        // --- LEFT HAND: OPEN/CLOSED FIST FOR VOLUME ---
+                        drawConnectors(octx, landmarks, HAND_CONNECTIONS, { color: 'rgba(124, 77, 255, 0.6)', lineWidth: 3 });
+
+                        const open = isHandOpen(landmarks);
+                        const targetVol = open ? 0.12 : 0;
+
+                        handState.innerText = open ? "🖐 PLAYING" : "✊ MUTED";
+                        fingerFills.forEach(f => f.style.height = open ? '80%' : '10%');
+
+                        if (audioStarted) {
+                            voices.forEach(v => v.gain.gain.setTargetAtTime(targetVol, audioCtx.currentTime, 0.15));
+                        }
+                    } else {
+                        // --- RIGHT HAND: PINCH FOR FREQUENCY ---
+                        drawConnectors(octx, landmarks, HAND_CONNECTIONS, { color: 'rgba(255, 255, 255, 0.5)', lineWidth: 2 });
+                        const thumb = landmarks[4];
+                        const index = landmarks[8];
+                        const dist = Math.hypot(thumb.x - index.x, thumb.y - index.y);
+
+                        globalFreqMultiplier = 0.5 + (Math.min(0.4, Math.max(0.02, dist)) * 10);
+                        masterFreqFill.style.width = ((globalFreqMultiplier / 4.5) * 100) + '%';
+
+                        if (audioStarted) {
+                            voices.forEach(v => {
+                                const newFreq = v.baseFreq * globalFreqMultiplier;
+                                v.oscs.forEach(osc => osc.frequency.setTargetAtTime(newFreq, audioCtx.currentTime, 0.1));
+                            });
+                        }
+                    }
+                });
+            } else {
+                handState.innerText = "Waiting for hands...";
+                if (audioStarted) voices.forEach(v => v.gain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.2));
+            }
+            octx.restore();
+        }
+
+        async function processFrame() {
+            if (sourceImg.complete && sourceImg.naturalHeight !== 0) await hands.send({ image: sourceImg });
+            requestAnimationFrame(processFrame);
+        }
+
+        document.getElementById('start-btn').addEventListener('click', initMediaPipe);
+    </script>
+</body>
+
+</html>

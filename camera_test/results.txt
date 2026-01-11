@@ -1,0 +1,50 @@
+[0:16:43.964645160] [6738] [1;32m INFO [1;37mCamera [1;34mcamera_manager.cpp:330 [0mlibcamera v0.5.2+99-bfd68f78
+[0:16:43.973295909] [6743] [1;32m INFO [1;37mRPI [1;34mpisp.cpp:720 [0mlibpisp version 1.3.0
+[0:16:43.974009397] [6743] [1;33m WARN [1;37mCameraSensorProperties [1;34mcamera_sensor_properties.cpp:499 [0mNo static properties available for 'imx708_wide_noir'
+[0:16:43.974019878] [6743] [1;33m WARN [1;37mCameraSensorProperties [1;34mcamera_sensor_properties.cpp:501 [0mPlease consider updating the camera sensor properties database
+[0:16:43.975649875] [6743] [1;32m INFO [1;37mIPAProxy [1;34mipa_proxy.cpp:180 [0mUsing tuning file /usr/share/libcamera/ipa/rpi/pisp/imx708_wide_noir.json
+[0:16:43.982108103] [6743] [1;33m WARN [1;37mCameraSensor [1;34mcamera_sensor_legacy.cpp:501 [0;32m'imx708_wide_noir': [0mNo sensor delays found in static properties. Assuming unverified defaults.
+[0:16:43.982515607] [6743] [1;32m INFO [1;37mCamera [1;34mcamera_manager.cpp:220 [0mAdding camera '/base/axi/pcie@1000120000/rp1/i2c@80000/imx708@1a' for pipeline handler rpi/pisp
+[0:16:43.982525922] [6743] [1;32m INFO [1;37mRPI [1;34mpisp.cpp:1179 [0mRegistered camera /base/axi/pcie@1000120000/rp1/i2c@80000/imx708@1a to CFE device /dev/media3 and ISP device /dev/media1 using PiSP variant BCM2712_D0
+[0:16:43.985456616] [6738] [1;32m INFO [1;37mCamera [1;34mcamera.cpp:1215 [0mconfiguring streams: (0) 1536x864-YUV420/Rec709 (1) 1536x864-BGGR_PISP_COMP1/RAW
+[0:16:43.985563025] [6743] [1;32m INFO [1;37mRPI [1;34mpisp.cpp:1483 [0mSensor: /base/axi/pcie@1000120000/rp1/i2c@80000/imx708@1a - Selected sensor format: 1536x864-SBGGR10_1X10/RAW - Selected CFE format: 1536x864-PC1B/RAW
+[0:16:44.095007229] [6738] [1;32m INFO [1;37mCamera [1;34mcamera_manager.cpp:330 [0mlibcamera v0.5.2+99-bfd68f78
+[0:16:44.106853285] [6749] [1;32m INFO [1;37mRPI [1;34mpisp.cpp:720 [0mlibpisp version 1.3.0
+[0:16:44.107781627] [6749] [1;33m WARN [1;37mCameraSensorProperties [1;34mcamera_sensor_properties.cpp:499 [0mNo static properties available for 'imx708_wide_noir'
+[0:16:44.107803961] [6749] [1;33m WARN [1;37mCameraSensorProperties [1;34mcamera_sensor_properties.cpp:501 [0mPlease consider updating the camera sensor properties database
+[0:16:44.109666719] [6749] [1;32m INFO [1;37mIPAProxy [1;34mipa_proxy.cpp:180 [0mUsing tuning file /usr/share/libcamera/ipa/rpi/pisp/imx708_wide_noir.json
+[0:16:44.117421237] [6749] [1;33m WARN [1;37mCameraSensor [1;34mcamera_sensor_legacy.cpp:501 [0;32m'imx708_wide_noir': [0mNo sensor delays found in static properties. Assuming unverified defaults.
+[0:16:44.117833741] [6749] [1;32m INFO [1;37mCamera [1;34mcamera_manager.cpp:220 [0mAdding camera '/base/axi/pcie@1000120000/rp1/i2c@80000/imx708@1a' for pipeline handler rpi/pisp
+[0:16:44.117844352] [6749] [1;32m INFO [1;37mRPI [1;34mpisp.cpp:1179 [0mRegistered camera /base/axi/pcie@1000120000/rp1/i2c@80000/imx708@1a to CFE device /dev/media3 and ISP device /dev/media1 using PiSP variant BCM2712_D0
+[0:16:44.120399784] [6738] [1;32m INFO [1;37mCamera [1;34mcamera.cpp:1215 [0mconfiguring streams: (0) 1536x864-YUV420/Rec709 (1) 1536x864-BGGR_PISP_COMP1/RAW
+[0:16:44.120502674] [6749] [1;32m INFO [1;37mRPI [1;34mpisp.cpp:1483 [0mSensor: /base/axi/pcie@1000120000/rp1/i2c@80000/imx708@1a - Selected sensor format: 1536x864-SBGGR10_1X10/RAW - Selected CFE format: 1536x864-PC1B/RAW
+[0:16:44.229905192] [6738] [1;32m INFO [1;37mCamera [1;34mcamera_manager.cpp:330 [0mlibcamera v0.5.2+99-bfd68f78
+[0:16:44.238730387] [6758] [1;32m INFO [1;37mRPI [1;34mpisp.cpp:720 [0mlibpisp version 1.3.0
+[0:16:44.239455727] [6758] [1;33m WARN [1;37mCameraSensorProperties [1;34mcamera_sensor_properties.cpp:499 [0mNo static properties available for 'imx708_wide_noir'
+[0:16:44.239468301] [6758] [1;33m WARN [1;37mCameraSensorProperties [1;34mcamera_sensor_properties.cpp:501 [0mPlease consider updating the camera sensor properties database
+[0:16:44.241123947] [6758] [1;32m INFO [1;37mIPAProxy [1;34mipa_proxy.cpp:180 [0mUsing tuning file /usr/share/libcamera/ipa/rpi/pisp/imx708_wide_noir.json
+[0:16:44.247901474] [6758] [1;33m WARN [1;37mCameraSensor [1;34mcamera_sensor_legacy.cpp:501 [0;32m'imx708_wide_noir': [0mNo sensor delays found in static properties. Assuming unverified defaults.
+[0:16:44.248365275] [6758] [1;32m INFO [1;37mCamera [1;34mcamera_manager.cpp:220 [0mAdding camera '/base/axi/pcie@1000120000/rp1/i2c@80000/imx708@1a' for pipeline handler rpi/pisp
+[0:16:44.248379812] [6758] [1;32m INFO [1;37mRPI [1;34mpisp.cpp:1179 [0mRegistered camera /base/axi/pcie@1000120000/rp1/i2c@80000/imx708@1a to CFE device /dev/media3 and ISP device /dev/media1 using PiSP variant BCM2712_D0
+[0:16:44.250855557] [6738] [1;32m INFO [1;37mCamera [1;34mcamera.cpp:1215 [0mconfiguring streams: (0) 1280x720-YUV420/Rec709 (1) 1536x864-BGGR_PISP_COMP1/RAW
+[0:16:44.250941836] [6758] [1;32m INFO [1;37mRPI [1;34mpisp.cpp:1483 [0mSensor: /base/axi/pcie@1000120000/rp1/i2c@80000/imx708@1a - Selected sensor format: 1536x864-SBGGR10_1X10/RAW - Selected CFE format: 1536x864-PC1B/RAW
+[0:16:44.358477818] [6738] [1;32m INFO [1;37mCamera [1;34mcamera_manager.cpp:330 [0mlibcamera v0.5.2+99-bfd68f78
+[0:16:44.367025677] [6764] [1;32m INFO [1;37mRPI [1;34mpisp.cpp:720 [0mlibpisp version 1.3.0
+[0:16:44.367703665] [6764] [1;33m WARN [1;37mCameraSensorProperties [1;34mcamera_sensor_properties.cpp:499 [0mNo static properties available for 'imx708_wide_noir'
+[0:16:44.367714017] [6764] [1;33m WARN [1;37mCameraSensorProperties [1;34mcamera_sensor_properties.cpp:501 [0mPlease consider updating the camera sensor properties database
+[0:16:44.369321161] [6764] [1;32m INFO [1;37mIPAProxy [1;34mipa_proxy.cpp:180 [0mUsing tuning file /usr/share/libcamera/ipa/rpi/pisp/imx708_wide_noir.json
+[0:16:44.375963058] [6764] [1;33m WARN [1;37mCameraSensor [1;34mcamera_sensor_legacy.cpp:501 [0;32m'imx708_wide_noir': [0mNo sensor delays found in static properties. Assuming unverified defaults.
+[0:16:44.376380821] [6764] [1;32m INFO [1;37mCamera [1;34mcamera_manager.cpp:220 [0mAdding camera '/base/axi/pcie@1000120000/rp1/i2c@80000/imx708@1a' for pipeline handler rpi/pisp
+[0:16:44.376398821] [6764] [1;32m INFO [1;37mRPI [1;34mpisp.cpp:1179 [0mRegistered camera /base/axi/pcie@1000120000/rp1/i2c@80000/imx708@1a to CFE device /dev/media3 and ISP device /dev/media1 using PiSP variant BCM2712_D0
+[0:16:44.379000438] [6738] [1;32m INFO [1;37mCamera [1;34mcamera.cpp:1215 [0mconfiguring streams: (0) 640x480-YUV420/SMPTE170M (1) 1536x864-BGGR_PISP_COMP1/RAW
+[0:16:44.379098050] [6764] [1;32m INFO [1;37mRPI [1;34mpisp.cpp:1483 [0mSensor: /base/axi/pcie@1000120000/rp1/i2c@80000/imx708@1a - Selected sensor format: 1536x864-SBGGR10_1X10/RAW - Selected CFE format: 1536x864-PC1B/RAW
+Testing 1536x864 at 120 FPS...
+Failed to test 1536x864 at 120 FPS: Picamera2.start_recording() missing 1 required positional argument: 'output'
+Testing 1536x864 at 150 FPS...
+Failed to test 1536x864 at 150 FPS: Picamera2.start_recording() missing 1 required positional argument: 'output'
+Testing 1280x720 at 120 FPS...
+Failed to test 1280x720 at 120 FPS: Picamera2.start_recording() missing 1 required positional argument: 'output'
+Testing 640x480 at 200 FPS...
+Failed to test 640x480 at 200 FPS: Picamera2.start_recording() missing 1 required positional argument: 'output'
+
+Summary:
